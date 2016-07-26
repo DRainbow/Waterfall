@@ -2,12 +2,17 @@ package com.android.sugar.waterfall;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 
 import java.util.List;
 
@@ -47,8 +52,24 @@ public class WaterfallAdapter extends RecyclerView.Adapter<WaterfallAdapter.Wate
     }
 
     @Override
-    public void onBindViewHolder(WaterfallVH holder, int position) {
-        Glide.with(mContext).load(mImageArr.get(position)).into(holder.mContentIv);
+    public void onBindViewHolder(final WaterfallVH holder, int position) {
+//        Glide.with(mContext).load(mImageArr.get(position)).into(holder.mContentIv);
+        Glide.with(mContext).load(mImageArr.get(position)).into(new SimpleTarget<GlideDrawable>() {
+            @Override
+            public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
+                ViewGroup.LayoutParams lp = holder.mContentIv.getLayoutParams();
+
+                WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+                DisplayMetrics outMetrics = new DisplayMetrics();
+                wm.getDefaultDisplay().getMetrics(outMetrics);
+                lp.width = outMetrics.widthPixels / 3;
+                lp.height = resource.getIntrinsicHeight() * outMetrics.widthPixels / 3 / resource.getIntrinsicWidth();
+
+                holder.mContentIv.setLayoutParams(lp);
+
+                holder.mContentIv.setImageDrawable(resource);
+            }
+        });
 
         /* 添加item点击事件 */
         holder.mContentIv.setOnClickListener(new View.OnClickListener() {
